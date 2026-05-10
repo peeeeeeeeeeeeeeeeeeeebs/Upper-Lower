@@ -541,12 +541,46 @@
       const el = document.getElementById(id);
       if (el) el.value = val;
     });
+    const savedUnit = localStorage.getItem('liftunits');
+    if (savedUnit && savedUnit !== 'kg') {
+      document.querySelectorAll('.units-toggle').forEach(toggle => {
+        toggle.querySelectorAll('.units-btn').forEach(b => {
+          b.classList.toggle('active', b.textContent === savedUnit);
+        });
+      });
+      document.querySelectorAll('.weight-input').forEach(input => {
+        if (input.placeholder !== '—') input.placeholder = savedUnit;
+      });
+      currentUnit = savedUnit;
+    }
   }
 
+  let currentUnit = 'kg';
+
   function setUnits(unit, btn) {
+    if (unit === currentUnit) return;
     btn.closest('.units-toggle').querySelectorAll('.units-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+
+    // Convert all entered values
+    document.querySelectorAll('.weight-input').forEach(input => {
+      if (input.placeholder === '—') return; // skip bodyweight exercises
+      if (input.value) {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+          if (unit === 'lb') {
+            input.value = Math.round(val * 2.2046 * 4) / 4; // round to nearest 0.25
+          } else {
+            input.value = Math.round(val / 2.2046 * 4) / 4;
+          }
+        }
+      }
+      input.placeholder = unit;
+    });
+
+    currentUnit = unit;
     localStorage.setItem('liftunits', unit);
+    save();
   }
 
   // TIMER
