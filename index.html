@@ -187,7 +187,137 @@
   .weight-input:focus { border-color: #555; }
   .weight-input::placeholder { color: var(--muted); font-weight: 400; font-size: 0.72rem; }
 
-  .timer-cell { text-align: center; }
+  /* EDIT MODE */
+  .edit-btn {
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top, 16px));
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    z-index: 200;
+    transition: all 0.15s;
+  }
+
+  .edit-btn.active {
+    background: var(--upper);
+    border-color: var(--upper);
+    color: #000;
+  }
+
+  .edit-btn:active { opacity: 0.7; }
+
+  .ex-name-input {
+    background: var(--input-bg);
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 5px 7px;
+    width: 100%;
+    outline: none;
+    display: none;
+  }
+
+  .ex-name-input:focus { border-color: #666; }
+
+  body.edit-mode .ex-name { display: none; }
+  body.edit-mode .ex-name-input { display: block; }
+  body.edit-mode .delete-btn { display: flex; }
+  body.edit-mode .add-row-btn { display: flex; }
+
+  .delete-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #2a1010;
+    border: 1px solid #5a2020;
+    border-radius: 50%;
+    color: #e05;
+    font-size: 1rem;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    margin-right: 6px;
+  }
+
+  .delete-btn:active { opacity: 0.6; transform: scale(0.9); }
+
+  .add-row-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .add-row-btn:active { opacity: 0.6; }
+
+  .sets-input {
+    background: var(--input-bg);
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 5px 2px;
+    width: 100%;
+    outline: none;
+    display: none;
+  }
+
+  body.edit-mode .ex-sets { display: none; }
+  body.edit-mode .sets-input { display: block; }
+
+  .prog-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--muted);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .prog-btn:active { transform: scale(0.88); }
+
+  .prog-btn.ready {
+    background: #1a3a1a;
+    border-color: #4a9;
+    color: #4a9;
+  }
+
+  .tracker-table thead th.col-prog { text-align: center; width: 36px; }
+  .progress-cell { text-align: center; width: 36px; }
+  .delete-cell { width: 32px; vertical-align: middle; display: none; }
+  body.edit-mode .delete-cell { display: table-cell; }
 
   .rest-btn {
     background: var(--surface);
@@ -353,6 +483,7 @@
 
 <header>
   <div class="app-title">Lift Tracker</div>
+  <button class="edit-btn" id="edit-btn" onclick="toggleEditMode()">Edit</button>
   <div class="tabs">
     <button class="tab" onclick="showDay(0)" id="tab-0">Upper A</button>
     <button class="tab" onclick="showDay(1)" id="tab-1">Lower A</button>
@@ -376,17 +507,18 @@
     </div>
     <div class="day-label">Monday · Upper A</div>
     <table class="tracker-table upper-table">
-      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th></tr></thead>
+      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th><th class="col-prog"></th></tr></thead>
       <tbody>
-        <tr><td class="ex-name">Flat Barbell Bench Press</td><td class="ex-sets">4×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td></tr>
-        <tr><td class="ex-name">Chest-Supported DB Row</td><td class="ex-sets">4×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Seated DB Overhead Press</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Incline DB Curl</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(75, this)">1:15</button></td></tr>
-        <tr><td class="ex-name">Cable Tricep Pushdown</td><td class="ex-sets">3×12–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(75, this)">1:15</button></td></tr>
-        <tr><td class="ex-name">Pull-Up / Lat Pulldown</td><td class="ex-sets">3×8–10</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Face Pull</td><td class="ex-sets">3×15–20</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Flat Barbell Bench Press</span><input class="ex-name-input" type="text" value="Flat Barbell Bench Press" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×6–8</span><input class="sets-input" type="text" value="4×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-0" onclick="toggleProgress('p-0-0')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Chest-Supported DB Row</span><input class="ex-name-input" type="text" value="Chest-Supported DB Row" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×6–8</span><input class="sets-input" type="text" value="4×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-1" onclick="toggleProgress('p-0-1')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Seated DB Overhead Press</span><input class="ex-name-input" type="text" value="Seated DB Overhead Press" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-2" onclick="toggleProgress('p-0-2')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Incline DB Curl</span><input class="ex-name-input" type="text" value="Incline DB Curl" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(75, this)">1:15</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-3" onclick="toggleProgress('p-0-3')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Cable Tricep Pushdown</span><input class="ex-name-input" type="text" value="Cable Tricep Pushdown" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×12–15</span><input class="sets-input" type="text" value="3×12–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(75, this)">1:15</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-4" onclick="toggleProgress('p-0-4')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Pull-Up / Lat Pulldown</span><input class="ex-name-input" type="text" value="Pull-Up / Lat Pulldown" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×8–10</span><input class="sets-input" type="text" value="3×8–10" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-5" onclick="toggleProgress('p-0-5')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">YTW Raises (Incline Bench)</span><input class="ex-name-input" type="text" value="YTW Raises (Incline Bench)" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-0-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-0-6" onclick="toggleProgress('p-0-6')" title="Ready to progress">✓</button></td></tr>
       </tbody>
-    </table>
+</table>
+    <button class="add-row-btn" onclick="addRow(this)">+ Add exercise</button>
     <div class="save-bar"><span class="last-saved" id="saved-0"></span><button class="save-btn" onclick="saveNow(0)">Save</button></div>
   </div>
 
@@ -401,16 +533,17 @@
     </div>
     <div class="day-label">Tuesday · Lower A</div>
     <table class="tracker-table lower-table">
-      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th></tr></thead>
+      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th><th class="col-prog"></th></tr></thead>
       <tbody>
-        <tr><td class="ex-name">Hack Squat</td><td class="ex-sets">4×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td></tr>
-        <tr><td class="ex-name">Romanian Deadlift</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(120, this)">2:00</button></td></tr>
-        <tr><td class="ex-name">Reverse Lunge (DB)</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Leg Curl</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Standing Calf Raise</td><td class="ex-sets">4×12–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Plank</td><td class="ex-sets">3×45–60s</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="—" id="w-1-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Hack Squat</span><input class="ex-name-input" type="text" value="Hack Squat" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×6–8</span><input class="sets-input" type="text" value="4×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-0" onclick="toggleProgress('p-1-0')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Romanian Deadlift</span><input class="ex-name-input" type="text" value="Romanian Deadlift" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(120, this)">2:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-1" onclick="toggleProgress('p-1-1')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Reverse Lunge (DB)</span><input class="ex-name-input" type="text" value="Reverse Lunge (DB)" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-2" onclick="toggleProgress('p-1-2')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Leg Curl</span><input class="ex-name-input" type="text" value="Leg Curl" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-3" onclick="toggleProgress('p-1-3')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Standing Calf Raise</span><input class="ex-name-input" type="text" value="Standing Calf Raise" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×12–15</span><input class="sets-input" type="text" value="4×12–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-1-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-4" onclick="toggleProgress('p-1-4')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Plank</span><input class="ex-name-input" type="text" value="Plank" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×45–60s</span><input class="sets-input" type="text" value="3×45–60s" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="—" id="w-1-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-1-5" onclick="toggleProgress('p-1-5')" title="Ready to progress">✓</button></td></tr>
       </tbody>
-    </table>
+</table>
+    <button class="add-row-btn" onclick="addRow(this)">+ Add exercise</button>
     <div class="save-bar"><span class="last-saved" id="saved-1"></span><button class="save-btn" onclick="saveNow(1)">Save</button></div>
   </div>
 
@@ -425,17 +558,18 @@
     </div>
     <div class="day-label">Thursday · Upper B</div>
     <table class="tracker-table upper-table">
-      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th></tr></thead>
+      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th><th class="col-prog"></th></tr></thead>
       <tbody>
-        <tr><td class="ex-name">Machine Shoulder Press</td><td class="ex-sets">4×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td></tr>
-        <tr><td class="ex-name">Pull-Up / Lat Pulldown</td><td class="ex-sets">4×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td></tr>
-        <tr><td class="ex-name">DB Incline Bench Press</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Cable Seated Row</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">EZ-Bar Curl</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Overhead Tricep Extension</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Lateral Raise</td><td class="ex-sets">3×15–20</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Machine Shoulder Press</span><input class="ex-name-input" type="text" value="Machine Shoulder Press" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×6–8</span><input class="sets-input" type="text" value="4×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-0" onclick="toggleProgress('p-2-0')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Pull-Up / Lat Pulldown</span><input class="ex-name-input" type="text" value="Pull-Up / Lat Pulldown" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×6–8</span><input class="sets-input" type="text" value="4×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-1" onclick="toggleProgress('p-2-1')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">DB Incline Bench Press</span><input class="ex-name-input" type="text" value="DB Incline Bench Press" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-2" onclick="toggleProgress('p-2-2')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Cable Seated Row</span><input class="ex-name-input" type="text" value="Cable Seated Row" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-3" onclick="toggleProgress('p-2-3')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">EZ-Bar Curl</span><input class="ex-name-input" type="text" value="EZ-Bar Curl" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-4" onclick="toggleProgress('p-2-4')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Overhead Tricep Extension</span><input class="ex-name-input" type="text" value="Overhead Tricep Extension" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-5" onclick="toggleProgress('p-2-5')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Lateral Raise</span><input class="ex-name-input" type="text" value="Lateral Raise" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×15–20</span><input class="sets-input" type="text" value="3×15–20" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-2-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-2-6" onclick="toggleProgress('p-2-6')" title="Ready to progress">✓</button></td></tr>
       </tbody>
-    </table>
+</table>
+    <button class="add-row-btn" onclick="addRow(this)">+ Add exercise</button>
     <div class="save-bar"><span class="last-saved" id="saved-2"></span><button class="save-btn" onclick="saveNow(2)">Save</button></div>
   </div>
 
@@ -450,16 +584,17 @@
     </div>
     <div class="day-label">Friday · Lower B</div>
     <table class="tracker-table lower-table">
-      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th></tr></thead>
+      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th><th class="col-prog"></th></tr></thead>
       <tbody>
-        <tr><td class="ex-name">Conventional Deadlift</td><td class="ex-sets">3×6–8</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td></tr>
-        <tr><td class="ex-name">Bulgarian Split Squat</td><td class="ex-sets">3×10–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Leg Extension</td><td class="ex-sets">3×12–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Leg Curl</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Glute Drive</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
-        <tr><td class="ex-name">Hanging Leg Raise / Cable Crunch</td><td class="ex-sets">3×10–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="—" id="w-3-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Conventional Deadlift</span><input class="ex-name-input" type="text" value="Conventional Deadlift" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×6–8</span><input class="sets-input" type="text" value="3×6–8" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(180, this)">3:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-0" onclick="toggleProgress('p-3-0')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Bulgarian Split Squat</span><input class="ex-name-input" type="text" value="Bulgarian Split Squat" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–15</span><input class="sets-input" type="text" value="3×10–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-1" onclick="toggleProgress('p-3-1')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Leg Extension</span><input class="ex-name-input" type="text" value="Leg Extension" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×12–15</span><input class="sets-input" type="text" value="3×12–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-2" onclick="toggleProgress('p-3-2')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Leg Curl</span><input class="ex-name-input" type="text" value="Leg Curl" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-3" onclick="toggleProgress('p-3-3')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Glute Drive</span><input class="ex-name-input" type="text" value="Glute Drive" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-3-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-4" onclick="toggleProgress('p-3-4')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Hanging Leg Raise / Cable Crunch</span><input class="ex-name-input" type="text" value="Hanging Leg Raise / Cable Crunch" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–15</span><input class="sets-input" type="text" value="3×10–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="—" id="w-3-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-3-5" onclick="toggleProgress('p-3-5')" title="Ready to progress">✓</button></td></tr>
       </tbody>
-    </table>
+</table>
+    <button class="add-row-btn" onclick="addRow(this)">+ Add exercise</button>
     <div class="save-bar"><span class="last-saved" id="saved-3"></span><button class="save-btn" onclick="saveNow(3)">Save</button></div>
   </div>
 
@@ -474,17 +609,18 @@
     </div>
     <div class="day-label">Saturday · Optional</div>
     <table class="tracker-table optional-table">
-      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th></tr></thead>
+      <thead><tr><th>Exercise</th><th class="col-sets">Sets×Reps</th><th class="col-weight">Weight</th><th class="col-timer">Rest</th><th class="col-prog"></th></tr></thead>
       <tbody>
-        <tr><td class="ex-name">Rear Delt Fly</td><td class="ex-sets">3×15–20</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Cable Fly / Pec Deck</td><td class="ex-sets">3×12–15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Lateral Raise</td><td class="ex-sets">3×15–20</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Hammer Curl + Pushdown</td><td class="ex-sets">3×12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(45, this)">0:45</button></td></tr>
-        <tr><td class="ex-name">Seated Calf Raise</td><td class="ex-sets">4×15–20</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Goblet Squat</td><td class="ex-sets">3×15</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td></tr>
-        <tr><td class="ex-name">Leg Curl</td><td class="ex-sets">3×10–12</td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Rear Delt Fly</span><input class="ex-name-input" type="text" value="Rear Delt Fly" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×15–20</span><input class="sets-input" type="text" value="3×15–20" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-0" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-0" onclick="toggleProgress('p-4-0')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Cable Fly / Pec Deck</span><input class="ex-name-input" type="text" value="Cable Fly / Pec Deck" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×12–15</span><input class="sets-input" type="text" value="3×12–15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-1" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-1" onclick="toggleProgress('p-4-1')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Lateral Raise</span><input class="ex-name-input" type="text" value="Lateral Raise" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×15–20</span><input class="sets-input" type="text" value="3×15–20" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-2" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-2" onclick="toggleProgress('p-4-2')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Hammer Curl + Pushdown</span><input class="ex-name-input" type="text" value="Hammer Curl + Pushdown" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×12</span><input class="sets-input" type="text" value="3×12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-3" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(45, this)">0:45</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-3" onclick="toggleProgress('p-4-3')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Seated Calf Raise</span><input class="ex-name-input" type="text" value="Seated Calf Raise" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">4×15–20</span><input class="sets-input" type="text" value="4×15–20" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-4" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-4" onclick="toggleProgress('p-4-4')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Goblet Squat</span><input class="ex-name-input" type="text" value="Goblet Squat" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×15</span><input class="sets-input" type="text" value="3×15" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-5" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(60, this)">1:00</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-5" onclick="toggleProgress('p-4-5')" title="Ready to progress">✓</button></td></tr>
+        <tr><td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td><td class="ex-name-wrap"><span class="ex-name">Leg Curl</span><input class="ex-name-input" type="text" value="Leg Curl" onchange="saveCustom()"></td><td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td><td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="kg" id="w-4-6" onchange="save()"></td><td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td><td class="progress-cell"><button class="prog-btn" id="p-4-6" onclick="toggleProgress('p-4-6')" title="Ready to progress">✓</button></td></tr>
       </tbody>
-    </table>
+</table>
+    <button class="add-row-btn" onclick="addRow(this)">+ Add exercise</button>
     <div class="save-bar"><span class="last-saved" id="saved-4"></span><button class="save-btn" onclick="saveNow(4)">Save</button></div>
   </div>
 
@@ -584,12 +720,14 @@
   }
 
   // TIMER
-  let timerInterval = null;
-  let timerRemaining = 0;
+  let timerEndTime = null;
   let timerTotal = 0;
   let timerPaused = false;
+  let timerPausedRemaining = 0;
+  let timerRaf = null;
   let activeRestBtn = null;
   let audioCtx = null;
+  let alerted = false;
 
   function getAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -614,6 +752,8 @@
   }
 
   function alertDone() {
+    if (alerted) return;
+    alerted = true;
     beep(440, 0.15, 0.4, 0);
     beep(550, 0.15, 0.4, 0.18);
     beep(660, 0.3, 0.5, 0.36);
@@ -624,55 +764,79 @@
   }
 
   function fmt(s) {
+    s = Math.max(0, Math.round(s));
     return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
+  function getRemaining() {
+    if (timerPaused) return timerPausedRemaining;
+    if (!timerEndTime) return 0;
+    return Math.max(0, (timerEndTime - Date.now()) / 1000);
+  }
+
   function updateDisplay() {
+    const remaining = getRemaining();
     const d = document.getElementById('timer-display');
-    d.textContent = fmt(timerRemaining);
+    d.textContent = fmt(remaining);
     d.className = 'timer-display';
-    if (timerRemaining <= 10 && timerRemaining > 0) d.classList.add('warning');
-    if (timerRemaining === 0) d.classList.add('done-color');
+    if (remaining <= 10 && remaining > 0) d.classList.add('warning');
+    if (remaining === 0) d.classList.add('done-color');
+  }
+
+  function tick() {
+    const remaining = getRemaining();
+    updateDisplay();
+    if (remaining <= 0 && !timerPaused) {
+      alertDone();
+      if (activeRestBtn) { activeRestBtn.classList.remove('running'); activeRestBtn = null; }
+      document.getElementById('play-pause-btn').textContent = '▶';
+      timerEndTime = null;
+      return; // stop ticking
+    }
+    timerRaf = requestAnimationFrame(tick);
   }
 
   function startTimer(seconds, btnEl) {
     if (activeRestBtn) activeRestBtn.classList.remove('running');
     activeRestBtn = btnEl;
     btnEl.classList.add('running');
-    clearInterval(timerInterval);
     timerTotal = seconds;
-    timerRemaining = seconds;
     timerPaused = false;
+    timerPausedRemaining = 0;
+    alerted = false;
+    timerEndTime = Date.now() + seconds * 1000;
     const ft = document.getElementById('float-timer');
     ft.classList.remove('idle', 'done');
     document.getElementById('play-pause-btn').textContent = '⏸';
-    updateDisplay();
-    timerInterval = setInterval(() => {
-      if (!timerPaused) {
-        timerRemaining--;
-        updateDisplay();
-        if (timerRemaining <= 0) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-          alertDone();
-          if (activeRestBtn) activeRestBtn.classList.remove('running');
-          document.getElementById('play-pause-btn').textContent = '▶';
-        }
-      }
-    }, 1000);
+    cancelAnimationFrame(timerRaf);
+    timerRaf = requestAnimationFrame(tick);
   }
 
   function togglePause() {
-    if (timerRemaining <= 0 && !timerInterval) return;
-    timerPaused = !timerPaused;
-    document.getElementById('play-pause-btn').textContent = timerPaused ? '▶' : '⏸';
+    if (!timerEndTime && !timerPaused) return;
+    if (timerPaused) {
+      // Resume — set new end time based on remaining
+      timerEndTime = Date.now() + timerPausedRemaining * 1000;
+      timerPaused = false;
+      alerted = false;
+      document.getElementById('play-pause-btn').textContent = '⏸';
+      timerRaf = requestAnimationFrame(tick);
+    } else {
+      // Pause — record remaining
+      timerPausedRemaining = getRemaining();
+      timerPaused = true;
+      timerEndTime = null;
+      cancelAnimationFrame(timerRaf);
+      document.getElementById('play-pause-btn').textContent = '▶';
+    }
   }
 
   function resetTimer() {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    timerRemaining = timerTotal;
+    cancelAnimationFrame(timerRaf);
+    timerEndTime = null;
     timerPaused = false;
+    timerPausedRemaining = 0;
+    alerted = false;
     if (activeRestBtn) { activeRestBtn.classList.remove('running'); activeRestBtn = null; }
     const ft = document.getElementById('float-timer');
     ft.classList.remove('done');
@@ -681,35 +845,146 @@
       document.getElementById('timer-display').textContent = '—';
     } else {
       document.getElementById('play-pause-btn').textContent = '▶';
-      updateDisplay();
+      document.getElementById('timer-display').textContent = fmt(timerTotal);
+      document.getElementById('timer-display').className = 'timer-display';
     }
   }
 
   function adjustTimer(delta) {
-    timerRemaining = Math.max(0, timerRemaining + delta);
-    timerTotal = Math.max(0, timerTotal + delta);
-    updateDisplay();
-    if (timerRemaining > 0 && !timerInterval) {
+    if (timerPaused) {
+      timerPausedRemaining = Math.max(0, timerPausedRemaining + delta);
+      timerTotal = Math.max(0, timerTotal + delta);
+      updateDisplay();
+    } else if (timerEndTime) {
+      timerEndTime += delta * 1000;
+      timerTotal = Math.max(0, timerTotal + delta);
+      alerted = false;
       document.getElementById('float-timer').classList.remove('done');
-      timerPaused = false;
-      document.getElementById('play-pause-btn').textContent = '⏸';
-      timerInterval = setInterval(() => {
-        if (!timerPaused) {
-          timerRemaining--;
-          updateDisplay();
-          if (timerRemaining <= 0) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            alertDone();
-            document.getElementById('play-pause-btn').textContent = '▶';
-          }
-        }
-      }, 1000);
+      updateDisplay();
     }
   }
 
+  function toggleProgress(pid) {
+    const btn = document.getElementById(pid);
+    if (!btn) return;
+    btn.classList.toggle('ready');
+    saveProgress();
+  }
+
+  function saveProgress() {
+    const state = {};
+    document.querySelectorAll('.prog-btn').forEach(btn => {
+      if (btn.classList.contains('ready')) state[btn.id] = true;
+    });
+    localStorage.setItem('liftprogress', JSON.stringify(state));
+  }
+
+  function loadProgress() {
+    const state = JSON.parse(localStorage.getItem('liftprogress') || '{}');
+    Object.keys(state).forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.add('ready');
+    });
+  }
+  // EDIT MODE
+  let editMode = false;
+  let rowCounter = 1000;
+
+  function toggleEditMode() {
+    editMode = !editMode;
+    document.body.classList.toggle('edit-mode', editMode);
+    const btn = document.getElementById('edit-btn');
+    btn.textContent = editMode ? 'Done' : 'Edit';
+    btn.classList.toggle('active', editMode);
+    if (!editMode) saveCustom();
+  }
+
+  function deleteRow(btn) {
+    btn.closest('tr').remove();
+    saveCustom();
+    save();
+    saveProgress();
+  }
+
+  function addRow(btn) {
+    const dayView = btn.closest('.day-view');
+    const table = dayView.querySelector('table');
+    const tbody = table.querySelector('tbody');
+    const dayIndex = dayView.id.replace('day-', '');
+    const rid = rowCounter++;
+    const id = 'w-' + dayIndex + '-r' + rid;
+    const pid = 'p-' + dayIndex + '-r' + rid;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="delete-cell"><button class="delete-btn" onclick="deleteRow(this)">×</button></td>
+      <td class="ex-name-wrap"><span class="ex-name">New exercise</span><input class="ex-name-input" type="text" value="New exercise" onchange="saveCustom()"></td>
+      <td class="ex-sets-wrap"><span class="ex-sets">3×10–12</span><input class="sets-input" type="text" value="3×10–12" onchange="saveCustom()"></td>
+      <td class="weight-cell"><input class="weight-input" type="number" inputmode="decimal" placeholder="${currentUnit}" id="${id}" onchange="save()"></td>
+      <td class="timer-cell"><button class="rest-btn" onclick="startTimer(90, this)">1:30</button></td>
+      <td class="progress-cell"><button class="prog-btn" id="${pid}" onclick="toggleProgress('${pid}')" title="Ready to progress">✓</button></td>
+    `;
+    tbody.appendChild(tr);
+    tr.querySelector('.ex-name-input').focus();
+    saveCustom();
+  }
+
+  function saveCustom() {
+    // Sync visible spans with input values
+    document.querySelectorAll('.ex-name-wrap').forEach(cell => {
+      const span = cell.querySelector('.ex-name');
+      const input = cell.querySelector('.ex-name-input');
+      if (span && input) span.textContent = input.value;
+    });
+    document.querySelectorAll('.ex-sets-wrap').forEach(cell => {
+      const span = cell.querySelector('.ex-sets');
+      const input = cell.querySelector('.sets-input');
+      if (span && input) span.textContent = input.value;
+    });
+    // Persist row structure
+    const custom = {};
+    document.querySelectorAll('.day-view').forEach(day => {
+      custom[day.id] = [];
+      day.querySelectorAll('tbody tr').forEach(row => {
+        const nameInput = row.querySelector('.ex-name-input');
+        const setsInput = row.querySelector('.sets-input');
+        const weightInput = row.querySelector('.weight-input');
+        const timerBtn = row.querySelector('.rest-btn');
+        const progBtn = row.querySelector('.prog-btn');
+        if (!nameInput) return;
+        const timerMatch = timerBtn ? timerBtn.getAttribute('onclick').match(/\d+/) : null;
+        custom[day.id].push({
+          name: nameInput.value,
+          sets: setsInput ? setsInput.value : '',
+          weightId: weightInput ? weightInput.id : '',
+          timerSecs: timerMatch ? parseInt(timerMatch[0]) : 90,
+          progId: progBtn ? progBtn.id : ''
+        });
+      });
+    });
+    localStorage.setItem('liftcustom', JSON.stringify(custom));
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (timerEndTime && !timerPaused) {
+        const remaining = getRemaining();
+        if (remaining <= 0) {
+          alertDone();
+          if (activeRestBtn) { activeRestBtn.classList.remove('running'); activeRestBtn = null; }
+          document.getElementById('play-pause-btn').textContent = '▶';
+          timerEndTime = null;
+          updateDisplay();
+        } else {
+          cancelAnimationFrame(timerRaf);
+          timerRaf = requestAnimationFrame(tick);
+        }
+      }
+    }
+  });
+
   showDay(0);
   loadData();
+  loadProgress();
 </script>
 </body>
 </html>
